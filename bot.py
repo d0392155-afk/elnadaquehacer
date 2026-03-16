@@ -32,8 +32,8 @@ ARCHIVOS = {
     'entregas': 'entregas.json'
 }
 
-# Precio HBO
-PRECIO_HBO = 80
+# Precio HBO (5 créditos)
+PRECIO_HBO = 5
 
 # Inicializar archivos
 def inicializar_archivos():
@@ -144,21 +144,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     welcome_message = f"""
 ╔══════════════════════════════╗
-║   🔥 H I T S C O L  H B O 🔥   ║
+║      🔥 HITSCOL HBO 🔥        ║
 ╚══════════════════════════════╝
 
-🔰 ACCESO CONCEDIDO, {user_name.upper()}
+🔰 BIENVENIDO, {user_name.upper()}
 
-🎬 PLATAFORMA DISPONIBLE:
-    └─ HBO MAX
+🎬 PLATAFORMA: HBO MAX
+💰 COSTO: 5 CRÉDITOS
 
-💰 COSTO POR CUENTA: 80 CRÉDITOS
+📦 PAQUETES DISPONIBLES:
+• 50 CRÉDITOS → 5000 COP
+• 120 CRÉDITOS → 10000 COP
+• 300 CRÉDITOS → 15000 COP
 
-📦 PAQUETES:
-    ├─ 80 CRÉDITOS → 5000 COP / 1.63 USD
-    └─ 200 CRÉDITOS → 10000 COP / 2.90 USD
-
-⚡ USA /cmd PARA COMANDOS
+⚡ COMANDOS:
+/cmd - Ver todos los comandos
+/comprar - Comprar créditos
+/sacarcuenta - Obtener HBO MAX
 """
     await update.message.reply_text(welcome_message)
 
@@ -176,7 +178,7 @@ async def cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /comprar - Comprar créditos
 /sellers - Contactar vendedores
 
-🔸 VIP (con créditos):
+🔸 VIP:
 /sacarcuenta - Obtener HBO MAX
 /status - Ver mi estado
 /misentregas - Mi historial
@@ -192,7 +194,6 @@ async def cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /ver_cuentas - Ver stock
 /ver_entregas - Ver entregas
 /ver_cuenta_entregada - Ver detalles
-/exportar - Respaldar datos
 """
     
     if es_propietario(user_id) or es_admin(user_id):
@@ -214,18 +215,12 @@ async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
 💰 PAQUETES DE CRÉDITOS:
 
-🎯 PAQUETE BÁSICO:
-80 CRÉDITOS → 5000 COP / 1.63 USD
+🎯 50 CRÉDITOS → 5000 COP
+🎯 120 CRÉDITOS → 10000 COP
+🎯 300 CRÉDITOS → 15000 COP
 
-🎯 PAQUETE PREMIUM:
-200 CRÉDITOS → 10000 COP / 2.90 USD
-
-✨ CARACTERÍSTICAS:
-• Créditos sin caducidad
-• Válidos solo para HBO MAX
-• Entrega inmediata
-
-📞 CONTACTA /sellers
+📞 CONTACTA A LOS VENDEDORES:
+/sellers
 """
     await update.message.reply_text(mensaje)
 
@@ -351,7 +346,7 @@ async def sacarcuenta(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 💰 Créditos restantes: {users[str(user_id)]['creditos']}
 
-⚠️ No cambiar contraseña
+⚠️ No cambiar la contraseña
 """
         await update.message.reply_text(mensaje)
         
@@ -648,14 +643,6 @@ async def ver_cuenta_entregada(update: Update, context: ContextTypes.DEFAULT_TYP
     except:
         await update.message.reply_text("❌ Error")
 
-# /exportar
-async def exportar_datos(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
-        await update.message.reply_text("❌ No autorizado")
-        return
-    
-    await update.message.reply_text("📦 Función de exportación disponible en versión completa")
-
 # Manejador para comandos desconocidos
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Comando no válido. Usa /cmd")
@@ -664,7 +651,7 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     print("=" * 50)
-    print("🔥 HITSCOL HBO MAX BOT v1.0 🔥")
+    print("🔥 HITSCOL HBO BOT v1.0 🔥")
     print("=" * 50)
     
     inicializar_archivos()
@@ -725,7 +712,6 @@ def main():
     application.add_handler(CommandHandler("ver_cuentas", ver_cuentas))
     application.add_handler(CommandHandler("ver_entregas", ver_entregas))
     application.add_handler(CommandHandler("ver_cuenta_entregada", ver_cuenta_entregada))
-    application.add_handler(CommandHandler("exportar", exportar_datos))
     
     # Manejador de comandos desconocidos
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
