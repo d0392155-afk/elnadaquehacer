@@ -7,7 +7,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 from telegram.constants import ParseMode
 
 # ============================================
-TOKEN = "8670158841:AAEjW_2Vcx_cNpwpA_iE0dLOErfJw7Sd534"  # <--- TU TOKEN
+TOKEN = "8670158841:AAEjW_2Vcx_cNpwpA_iE0dLOErfJw7Sd534"  # <--- TU NUEVO TOKEN
 PROPIETARIO_ID = 8651211925  # <--- TU ID
 # ============================================
 
@@ -448,35 +448,44 @@ async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAU
         await update.message.reply_text(f"❌ Error: {str(e)}")
         return ConversationHandler.END
 
-# /agregar_cuenta
+# /agregar_cuenta - CORREGIDO
 async def agregar_cuenta_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
         await update.message.reply_text("❌ No autorizado")
         return ConversationHandler.END
     
-    await update.message.reply_text("📧 Correo de HBO MAX:")
+    await update.message.reply_text("📧 Envíame el CORREO de HBO MAX:")
     return AGREGAR_CUENTA_CORREO
 
 async def agregar_cuenta_correo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['correo'] = update.message.text
-    await update.message.reply_text("🔑 Contraseña:")
+    await update.message.reply_text("🔑 Envíame la CONTRASEÑA:")
     return AGREGAR_CUENTA_CONTRASENA
 
 async def agregar_cuenta_contrasena(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['contrasena'] = update.message.text
-    await update.message.reply_text("🌍 País:")
+    await update.message.reply_text("🌍 Envíame el PAÍS (ej: Colombia, USA, México, etc):")
     return AGREGAR_CUENTA_PAIS
 
 async def agregar_cuenta_pais(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['pais'] = update.message.text
-    await update.message.reply_text("📺 Plan:")
+    await update.message.reply_text("📺 Envíame el PLAN (ej: Premium, Básico, Estándar, 4K, Familiar, etc):")
     return AGREGAR_CUENTA_PLAN
 
 async def agregar_cuenta_plan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        context.user_data['plan'] = update.message.text
+        
+        # Verificar que todos los datos estén presentes
+        if not all(k in context.user_data for k in ['correo', 'contrasena', 'pais', 'plan']):
+            await update.message.reply_text("❌ Error: Faltan datos. Intenta de nuevo desde /agregar_cuenta")
+            return ConversationHandler.END
+        
+        # Cargar archivo hbo.json
         with open('hbo.json', 'r') as f:
             cuentas = json.load(f)
         
+        # Crear nueva cuenta
         nueva_cuenta = {
             'correo': context.user_data['correo'],
             'contraseña': context.user_data['contrasena'],
@@ -484,15 +493,31 @@ async def agregar_cuenta_plan(update: Update, context: ContextTypes.DEFAULT_TYPE
             'plan': context.user_data['plan']
         }
         
+        # Agregar a la lista
         cuentas.append(nueva_cuenta)
         
+        # Guardar archivo
         with open('hbo.json', 'w') as f:
-            json.dump(cuentas, f)
+            json.dump(cuentas, f, indent=2)
         
-        await update.message.reply_text(f"✅ Cuenta HBO agregada\nStock actual: {len(cuentas)}")
+        # Mensaje de éxito
+        await update.message.reply_text(f"""
+✅ CUENTA AGREGADA CON ÉXITO
+
+📧 Correo: {context.user_data['correo']}
+🔑 Contraseña: {context.user_data['contrasena']}
+🌍 País: {context.user_data['pais']}
+📺 Plan: {context.user_data['plan']}
+
+📦 Stock actual: {len(cuentas)} cuentas
+""")
+        
+        # Limpiar datos temporales
+        context.user_data.clear()
         return ConversationHandler.END
+        
     except Exception as e:
-        await update.message.reply_text(f"❌ Error: {str(e)}")
+        await update.message.reply_text(f"❌ Error al guardar: {str(e)}")
         return ConversationHandler.END
 
 # /eliminar_usuario
