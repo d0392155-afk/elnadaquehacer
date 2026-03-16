@@ -150,12 +150,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🔰 BIENVENIDO, {user_name.upper()}
 
 🎬 PLATAFORMA: HBO MAX
-💰 COSTO: 5 CRÉDITOS
+💰 COSTO POR CUENTA: 5 CRÉDITOS
 
 📦 PAQUETES DISPONIBLES:
-• 50 CRÉDITOS → 5000 COP
-• 120 CRÉDITOS → 10000 COP
-• 300 CRÉDITOS → 15000 COP
+• 80 CRÉDITOS → 5000 COP / 1.63 USD
+• 200 CRÉDITOS → 10000 COP / 2.90 USD
+
+💬 ¿QUIERES MENOS O MÁS CANTIDAD?
+   CONTACTA A LOS SELLERS CON /sellers
 
 ⚡ COMANDOS:
 /cmd - Ver todos los comandos
@@ -215,12 +217,14 @@ async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
 💰 PAQUETES DE CRÉDITOS:
 
-🎯 50 CRÉDITOS → 5000 COP
-🎯 120 CRÉDITOS → 10000 COP
-🎯 300 CRÉDITOS → 15000 COP
+🎯 80 CRÉDITOS → 5000 COP / 1.63 USD
+🎯 200 CRÉDITOS → 10000 COP / 2.90 USD
 
-📞 CONTACTA A LOS VENDEDORES:
-/sellers
+💬 ¿NECESITAS OTRA CANTIDAD?
+   Contáctanos directamente con /sellers
+   Podemos ofrecerte paquetes personalizados
+
+📞 VENDEDORES: /sellers
 """
     await update.message.reply_text(mensaje)
 
@@ -232,6 +236,12 @@ async def sellers(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @Guuason - Nequi/Binance
 @El_krat0s - Nequi/Binance
 @F3NIS - Nequi/Binance
+
+💬 CONTÁCTALOS PARA:
+• Comprar créditos
+• Paquetes personalizados
+• Menor o mayor cantidad
+• Consultas y soporte
 
 ⚠️ SOLO COMPRAR CON ELLOS
 """
