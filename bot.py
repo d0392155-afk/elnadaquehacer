@@ -8,13 +8,16 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 from telegram.constants import ParseMode
 import io
 import zipfile
+import threading
+from flask import Flask, jsonify
 
 # ============================================
 TOKEN = "8670158841:AAEjW_2Vcx_cNpwpA_iE0dLOErfJw7Sd534"  # <--- TU TOKEN
 PROPIETARIO_ID = 8651211925  # <--- TU ID
 
 # ============= CONFIGURACIÓN JSONbin.io =============
-JSONBIN_API_KEY = "$2a$10$/0rI1RfcE9DerLvjxUSdluCDeYK/ib9fKpEqndhnQB6OUqfUcIf1y"
+# Esta es tu X-Access-Key (no X-Master-Key)
+JSONBIN_ACCESS_KEY = "$2a$10$/0rI1RfcE9DerLvjxUSdluCDeYK/ib9fKpEqndhnQB6OUqfUcIf1y"
 
 BINS = {
     'hbo': '69b89c64b7ec241ddc751a8a',      # Bin de cuentas HBO
@@ -40,40 +43,32 @@ logger = logging.getLogger(__name__)
 # Precio HBO (5 créditos)
 PRECIO_HBO = 5
 
-# ============= FUNCIONES PARA JSONbin.io con MEJOR MANEJO DE ERRORES =============
-
-def test_conexion_jsonbin():
-    """Probar conexión con JSONbin.io"""
-    try:
-        url = "https://api.jsonbin.io/v3/b"
-        headers = {
-            'X-Master-Key': JSONBIN_API_KEY
-        }
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            return True, "Conexión exitosa"
-        else:
-            return False, f"Error {response.status_code}"
-    except requests.exceptions.RequestException as e:
-        return False, str(e)
+# ============= FUNCIONES PARA JSONbin.io CON X-Access-Key =============
 
 def leer_json_bin(bin_id):
-    """Leer datos de JSONbin.io con mejor manejo de errores"""
+    """Leer datos de JSONbin.io usando X-Access-Key"""
     try:
         url = f"https://api.jsonbin.io/v3/b/{bin_id}/latest"
         headers = {
-            'X-Master-Key': JSONBIN_API_KEY
+            'X-Access-Key': JSONBIN_ACCESS_KEY,  # Cambiado de X-Master-Key a X-Access-Key
+            'X-Bin-Meta': 'false'
         }
         print(f"📡 Leyendo bin {bin_id}...")
         response = requests.get(url, headers=headers, timeout=10)
         
         if response.status_code == 200:
-            data = response.json()['record']
+            data = response.json()
             print(f"✅ Datos leídos correctamente de {bin_id}")
             return data
+        elif response.status_code == 403:
+            print(f"❌ Error 403: Acceso denegado. Verifica tu X-Access-Key")
+            return None
+        elif response.status_code == 404:
+            print(f"❌ Error 404: Bin {bin_id} no encontrado")
+            return None
         else:
             print(f"❌ Error leyendo bin {bin_id}: Código {response.status_code}")
-            print(f"   Respuesta: {response.text[:200]}")
+            print(f"   Respuesta: {response.text}")
             return None
     except requests.exceptions.Timeout:
         print(f"❌ Timeout leyendo bin {bin_id}")
@@ -82,16 +77,17 @@ def leer_json_bin(bin_id):
         print(f"❌ Error de conexión leyendo bin {bin_id}")
         return None
     except Exception as e:
-        print(f"❌ Error inesperado leyendo bin {bin_id}: {e}")
+        print(f"❌ Error inesperado: {e}")
         return None
 
 def guardar_json_bin(bin_id, datos):
-    """Guardar datos en JSONbin.io con mejor manejo de errores"""
+    """Guardar datos en JSONbin.io usando X-Access-Key"""
     try:
         url = f"https://api.jsonbin.io/v3/b/{bin_id}"
         headers = {
             'Content-Type': 'application/json',
-            'X-Master-Key': JSONBIN_API_KEY
+            'X-Access-Key': JSONBIN_ACCESS_KEY,  # Cambiado de X-Master-Key a X-Access-Key
+            'X-Bin-Versioning': 'false'
         }
         print(f"📡 Guardando en bin {bin_id}...")
         response = requests.put(url, json=datos, headers=headers, timeout=10)
@@ -99,9 +95,15 @@ def guardar_json_bin(bin_id, datos):
         if response.status_code == 200:
             print(f"✅ Datos guardados correctamente en {bin_id}")
             return True
+        elif response.status_code == 403:
+            print(f"❌ Error 403: Acceso denegado. Verifica tu X-Access-Key")
+            return False
+        elif response.status_code == 404:
+            print(f"❌ Error 404: Bin {bin_id} no encontrado")
+            return False
         else:
             print(f"❌ Error guardando en bin {bin_id}: Código {response.status_code}")
-            print(f"   Respuesta: {response.text[:200]}")
+            print(f"   Respuesta: {response.text}")
             return False
     except requests.exceptions.Timeout:
         print(f"❌ Timeout guardando en bin {bin_id}")
@@ -110,21 +112,23 @@ def guardar_json_bin(bin_id, datos):
         print(f"❌ Error de conexión guardando en bin {bin_id}")
         return False
     except Exception as e:
-        print(f"❌ Error inesperado guardando en bin {bin_id}: {e}")
+        print(f"❌ Error inesperado: {e}")
         return False
 
 def inicializar_bins():
     """Inicializar todos los bins con datos por defecto"""
     
-    print("\n🔌 Probando conexión con JSONbin.io...")
-    conectado, mensaje = test_conexion_jsonbin()
-    if conectado:
-        print(f"✅ {mensaje}")
-    else:
-        print(f"⚠️ Problema de conexión: {mensaje}")
-        print("   Continuando de todas formas...")
+    print("\n" + "=" * 50)
+    print("🔌 CONECTANDO CON JSONbin.io")
+    print("=" * 50)
     
-    print("\n📦 Inicializando bins...")
+    # Probar conexión con un bin
+    test_data = leer_json_bin(BINS['admin'])
+    if test_data is None:
+        print("⚠️  No se pudo conectar con JSONbin.io")
+        print("⚠️  Verifica tu X-Access-Key y los IDs de los bins")
+        print("=" * 50)
+        return False
     
     # Inicializar admin.json (LISTA)
     admin_data = leer_json_bin(BINS['admin'])
@@ -163,6 +167,7 @@ def inicializar_bins():
         print(f"✅ Bin hbo.json cargado: {len(hbo_data)} cuentas")
     
     print("=" * 50)
+    return True
 
 # ============= FUNCIONES DE ACCESO A DATOS =============
 
@@ -263,6 +268,25 @@ def obtener_ultimas_entregas(user_id, limite=3):
         return entregas_usuario[-limite:] if entregas_usuario else []
     except:
         return []
+
+# ==================== FLASK KEEP ALIVE ====================
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return jsonify({
+        "status": "online",
+        "bot": "HITSCOL HBO",
+        "timestamp": str(datetime.now())
+    })
+
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy"})
+
+def run_flask():
+    app.run(host='0.0.0.0', port=8080)
 
 # ==================== COMANDOS ====================
 
@@ -489,7 +513,7 @@ async def sacarcuenta(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ==================== ADMIN ====================
 
-# /agregar_usuario - CORREGIDO
+# /agregar_usuario
 async def agregar_usuario_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
         await update.message.reply_text("❌ No autorizado")
@@ -533,7 +557,7 @@ async def agregar_usuario_creditos(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text(f"❌ Error: {str(e)}")
         return ConversationHandler.END
 
-# /recargar_creditos - CORREGIDO
+# /recargar_creditos
 async def recargar_creditos_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
         await update.message.reply_text("❌ No autorizado")
@@ -580,7 +604,7 @@ async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAU
         await update.message.reply_text(f"❌ Error: {str(e)}")
         return ConversationHandler.END
 
-# /agregar_cuenta - CORREGIDO
+# /agregar_cuenta
 async def agregar_cuenta_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
         await update.message.reply_text("❌ No autorizado")
@@ -846,7 +870,16 @@ def main():
     print("=" * 50)
     
     # Inicializar bins en JSONbin.io
-    inicializar_bins()
+    if inicializar_bins():
+        print("✅ Conexión con JSONbin.io establecida")
+    else:
+        print("⚠️  Problemas de conexión con JSONbin.io")
+        print("⚠️  Verifica tu X-Access-Key y los IDs de los bins")
+    
+    # Iniciar Flask en un hilo separado
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+    print("✅ Servidor web iniciado en puerto 8080")
     
     application = Application.builder().token(TOKEN).build()
     
