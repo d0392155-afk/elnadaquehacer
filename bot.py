@@ -76,28 +76,28 @@ def guardar_json_bin(bin_id, datos):
 def inicializar_bins():
     """Inicializar todos los bins con datos por defecto"""
     
-    # Inicializar admin.json
+    # Inicializar admin.json (LISTA)
     admin_data = leer_json_bin(BINS['admin'])
     if admin_data is None:
         admin_data = [PROPIETARIO_ID]
         guardar_json_bin(BINS['admin'], admin_data)
         print("✅ Bin admin.json inicializado")
     
-    # Inicializar users.json
+    # Inicializar users.json (DICCIONARIO)
     users_data = leer_json_bin(BINS['users'])
     if users_data is None:
         users_data = {}
         guardar_json_bin(BINS['users'], users_data)
         print("✅ Bin users.json inicializado")
     
-    # Inicializar entregas.json
+    # Inicializar entregas.json (LISTA)
     entregas_data = leer_json_bin(BINS['entregas'])
     if entregas_data is None:
         entregas_data = []
         guardar_json_bin(BINS['entregas'], entregas_data)
         print("✅ Bin entregas.json inicializado")
     
-    # Inicializar hbo.json
+    # Inicializar hbo.json (LISTA)
     hbo_data = leer_json_bin(BINS['hbo'])
     if hbo_data is None:
         hbo_data = []
@@ -414,7 +414,7 @@ async def sacarcuenta(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ==================== ADMIN ====================
 
-# /agregar_usuario
+# /agregar_usuario - CORREGIDO
 async def agregar_usuario_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
         await update.message.reply_text("❌ No autorizado")
@@ -437,22 +437,28 @@ async def agregar_usuario_creditos(update: Update, context: ContextTypes.DEFAULT
         creditos = int(update.message.text)
         target_id = context.user_data['target_id']
         
-        user_data = {
+        # Obtener usuarios actuales
+        users = obtener_usuarios()
+        
+        # Agregar nuevo usuario
+        users[str(target_id)] = {
             'creditos': creditos,
             'fecha_registro': str(datetime.now())
         }
         
-        if guardar_usuario(target_id, user_data):
+        # Guardar en JSONbin
+        if guardar_json_bin(BINS['users'], users):
             await update.message.reply_text(f"✅ Usuario {target_id} agregado con {creditos} créditos")
         else:
-            await update.message.reply_text("❌ Error al guardar usuario")
+            await update.message.reply_text("❌ Error al guardar en JSONbin")
         
+        context.user_data.clear()
         return ConversationHandler.END
     except Exception as e:
         await update.message.reply_text(f"❌ Error: {str(e)}")
         return ConversationHandler.END
 
-# /recargar_creditos
+# /recargar_creditos - CORREGIDO
 async def recargar_creditos_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
         await update.message.reply_text("❌ No autorizado")
@@ -475,8 +481,10 @@ async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAU
         cantidad = int(update.message.text)
         target_id = context.user_data['target_id']
         
+        # Obtener usuarios
         users = obtener_usuarios()
         
+        # Actualizar o crear usuario
         if str(target_id) in users:
             users[str(target_id)]['creditos'] += cantidad
         else:
@@ -485,11 +493,13 @@ async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAU
                 'fecha_registro': str(datetime.now())
             }
         
+        # Guardar en JSONbin
         if guardar_json_bin(BINS['users'], users):
             await update.message.reply_text(f"✅ {cantidad} créditos recargados a {target_id}")
         else:
-            await update.message.reply_text("❌ Error al recargar")
+            await update.message.reply_text("❌ Error al guardar en JSONbin")
         
+        context.user_data.clear()
         return ConversationHandler.END
     except Exception as e:
         await update.message.reply_text(f"❌ Error: {str(e)}")
@@ -608,10 +618,15 @@ async def eliminar_usuario_confirmar(update: Update, context: ContextTypes.DEFAU
     if query.data == "conf_si":
         target_id = context.user_data['eliminar_id']
         
-        if eliminar_usuario_db(target_id):
-            await query.edit_message_text(f"✅ Usuario {target_id} eliminado")
+        users = obtener_usuarios()
+        if str(target_id) in users:
+            del users[str(target_id)]
+            if guardar_json_bin(BINS['users'], users):
+                await query.edit_message_text(f"✅ Usuario {target_id} eliminado")
+            else:
+                await query.edit_message_text("❌ Error al guardar en JSONbin")
         else:
-            await query.edit_message_text("❌ Error al eliminar")
+            await query.edit_message_text("❌ Usuario no encontrado")
     else:
         await query.edit_message_text("✅ Cancelado")
     
