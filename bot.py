@@ -82,6 +82,8 @@ def inicializar_bins():
         admin_data = [PROPIETARIO_ID]
         guardar_json_bin(BINS['admin'], admin_data)
         print("✅ Bin admin.json inicializado")
+    else:
+        print(f"✅ Bin admin.json cargado: {admin_data}")
     
     # Inicializar users.json (DICCIONARIO)
     users_data = leer_json_bin(BINS['users'])
@@ -89,6 +91,8 @@ def inicializar_bins():
         users_data = {}
         guardar_json_bin(BINS['users'], users_data)
         print("✅ Bin users.json inicializado")
+    else:
+        print(f"✅ Bin users.json cargado: {len(users_data)} usuarios")
     
     # Inicializar entregas.json (LISTA)
     entregas_data = leer_json_bin(BINS['entregas'])
@@ -96,6 +100,8 @@ def inicializar_bins():
         entregas_data = []
         guardar_json_bin(BINS['entregas'], entregas_data)
         print("✅ Bin entregas.json inicializado")
+    else:
+        print(f"✅ Bin entregas.json cargado: {len(entregas_data)} entregas")
     
     # Inicializar hbo.json (LISTA)
     hbo_data = leer_json_bin(BINS['hbo'])
@@ -103,38 +109,48 @@ def inicializar_bins():
         hbo_data = []
         guardar_json_bin(BINS['hbo'], hbo_data)
         print("✅ Bin hbo.json inicializado")
+    else:
+        print(f"✅ Bin hbo.json cargado: {len(hbo_data)} cuentas")
 
 # ============= FUNCIONES DE ACCESO A DATOS =============
 
 def obtener_admins():
+    """Obtener lista de administradores"""
     data = leer_json_bin(BINS['admin'])
-    return data if data else []
+    return data if isinstance(data, list) else []
 
 def es_admin(user_id):
+    """Verificar si un usuario es admin"""
     admins = obtener_admins()
     return user_id in admins
 
 def es_propietario(user_id):
+    """Verificar si es el propietario"""
     return user_id == PROPIETARIO_ID
 
 def obtener_usuarios():
+    """Obtener diccionario de usuarios"""
     data = leer_json_bin(BINS['users'])
-    return data if data else {}
+    return data if isinstance(data, dict) else {}
 
 def es_vip(user_id):
+    """Verificar si es usuario VIP"""
     users = obtener_usuarios()
     return str(user_id) in users and users[str(user_id)]['creditos'] > 0
 
 def obtener_creditos(user_id):
+    """Obtener créditos de un usuario"""
     users = obtener_usuarios()
     return users.get(str(user_id), {}).get('creditos', 0)
 
 def guardar_usuario(user_id, datos):
+    """Guardar un usuario específico"""
     users = obtener_usuarios()
     users[str(user_id)] = datos
     return guardar_json_bin(BINS['users'], users)
 
 def eliminar_usuario_db(user_id):
+    """Eliminar un usuario"""
     users = obtener_usuarios()
     if str(user_id) in users:
         del users[str(user_id)]
@@ -142,24 +158,30 @@ def eliminar_usuario_db(user_id):
     return False
 
 def obtener_cuentas_hbo():
+    """Obtener lista de cuentas HBO"""
     data = leer_json_bin(BINS['hbo'])
-    return data if data else []
+    return data if isinstance(data, list) else []
 
 def guardar_cuentas_hbo(cuentas):
+    """Guardar lista de cuentas HBO"""
     return guardar_json_bin(BINS['hbo'], cuentas)
 
 def verificar_stock_hbo():
+    """Verificar stock de HBO"""
     cuentas = obtener_cuentas_hbo()
     return len(cuentas)
 
 def obtener_entregas():
+    """Obtener lista de entregas"""
     data = leer_json_bin(BINS['entregas'])
-    return data if data else []
+    return data if isinstance(data, list) else []
 
 def guardar_entregas(entregas):
+    """Guardar lista de entregas"""
     return guardar_json_bin(BINS['entregas'], entregas)
 
 def registrar_entrega(user_id, user_name, cuenta):
+    """Registrar una entrega"""
     try:
         entregas = obtener_entregas()
         
@@ -182,6 +204,7 @@ def registrar_entrega(user_id, user_name, cuenta):
         return False
 
 def obtener_ultimas_entregas(user_id, limite=3):
+    """Obtener últimas entregas de un usuario"""
     try:
         entregas = obtener_entregas()
         entregas_usuario = [e for e in entregas if e['user_id'] == user_id]
@@ -435,13 +458,13 @@ async def agregar_usuario_id(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def agregar_usuario_creditos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         creditos = int(update.message.text)
-        target_id = context.user_data['target_id']
+        target_id = str(context.user_data['target_id'])
         
         # Obtener usuarios actuales
         users = obtener_usuarios()
         
         # Agregar nuevo usuario
-        users[str(target_id)] = {
+        users[target_id] = {
             'creditos': creditos,
             'fecha_registro': str(datetime.now())
         }
@@ -479,16 +502,16 @@ async def recargar_creditos_id(update: Update, context: ContextTypes.DEFAULT_TYP
 async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         cantidad = int(update.message.text)
-        target_id = context.user_data['target_id']
+        target_id = str(context.user_data['target_id'])
         
         # Obtener usuarios
         users = obtener_usuarios()
         
         # Actualizar o crear usuario
-        if str(target_id) in users:
-            users[str(target_id)]['creditos'] += cantidad
+        if target_id in users:
+            users[target_id]['creditos'] += cantidad
         else:
-            users[str(target_id)] = {
+            users[target_id] = {
                 'creditos': cantidad,
                 'fecha_registro': str(datetime.now())
             }
@@ -586,11 +609,11 @@ async def eliminar_usuario_start(update: Update, context: ContextTypes.DEFAULT_T
 
 async def eliminar_usuario_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        target_id = int(update.message.text)
+        target_id = str(int(update.message.text))
         
         users = obtener_usuarios()
         
-        if str(target_id) not in users:
+        if target_id not in users:
             await update.message.reply_text("❌ Usuario no existe")
             return ConversationHandler.END
         
@@ -619,8 +642,8 @@ async def eliminar_usuario_confirmar(update: Update, context: ContextTypes.DEFAU
         target_id = context.user_data['eliminar_id']
         
         users = obtener_usuarios()
-        if str(target_id) in users:
-            del users[str(target_id)]
+        if target_id in users:
+            del users[target_id]
             if guardar_json_bin(BINS['users'], users):
                 await query.edit_message_text(f"✅ Usuario {target_id} eliminado")
             else:
