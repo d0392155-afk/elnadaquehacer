@@ -40,48 +40,98 @@ logger = logging.getLogger(__name__)
 # Precio HBO (5 créditos)
 PRECIO_HBO = 5
 
-# ============= FUNCIONES PARA JSONbin.io =============
+# ============= FUNCIONES PARA JSONbin.io con MEJOR MANEJO DE ERRORES =============
+
+def test_conexion_jsonbin():
+    """Probar conexión con JSONbin.io"""
+    try:
+        url = "https://api.jsonbin.io/v3/b"
+        headers = {
+            'X-Master-Key': JSONBIN_API_KEY
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            return True, "Conexión exitosa"
+        else:
+            return False, f"Error {response.status_code}"
+    except requests.exceptions.RequestException as e:
+        return False, str(e)
 
 def leer_json_bin(bin_id):
-    """Leer datos de JSONbin.io"""
+    """Leer datos de JSONbin.io con mejor manejo de errores"""
     try:
         url = f"https://api.jsonbin.io/v3/b/{bin_id}/latest"
         headers = {
             'X-Master-Key': JSONBIN_API_KEY
         }
-        response = requests.get(url, headers=headers)
+        print(f"📡 Leyendo bin {bin_id}...")
+        response = requests.get(url, headers=headers, timeout=10)
+        
         if response.status_code == 200:
-            return response.json()['record']
+            data = response.json()['record']
+            print(f"✅ Datos leídos correctamente de {bin_id}")
+            return data
         else:
-            print(f"Error leyendo bin {bin_id}: {response.status_code}")
+            print(f"❌ Error leyendo bin {bin_id}: Código {response.status_code}")
+            print(f"   Respuesta: {response.text[:200]}")
             return None
+    except requests.exceptions.Timeout:
+        print(f"❌ Timeout leyendo bin {bin_id}")
+        return None
+    except requests.exceptions.ConnectionError:
+        print(f"❌ Error de conexión leyendo bin {bin_id}")
+        return None
     except Exception as e:
-        print(f"Error en leer_json_bin: {e}")
+        print(f"❌ Error inesperado leyendo bin {bin_id}: {e}")
         return None
 
 def guardar_json_bin(bin_id, datos):
-    """Guardar datos en JSONbin.io"""
+    """Guardar datos en JSONbin.io con mejor manejo de errores"""
     try:
         url = f"https://api.jsonbin.io/v3/b/{bin_id}"
         headers = {
             'Content-Type': 'application/json',
             'X-Master-Key': JSONBIN_API_KEY
         }
-        response = requests.put(url, json=datos, headers=headers)
-        return response.status_code == 200
+        print(f"📡 Guardando en bin {bin_id}...")
+        response = requests.put(url, json=datos, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            print(f"✅ Datos guardados correctamente en {bin_id}")
+            return True
+        else:
+            print(f"❌ Error guardando en bin {bin_id}: Código {response.status_code}")
+            print(f"   Respuesta: {response.text[:200]}")
+            return False
+    except requests.exceptions.Timeout:
+        print(f"❌ Timeout guardando en bin {bin_id}")
+        return False
+    except requests.exceptions.ConnectionError:
+        print(f"❌ Error de conexión guardando en bin {bin_id}")
+        return False
     except Exception as e:
-        print(f"Error en guardar_json_bin: {e}")
+        print(f"❌ Error inesperado guardando en bin {bin_id}: {e}")
         return False
 
 def inicializar_bins():
     """Inicializar todos los bins con datos por defecto"""
     
+    print("\n🔌 Probando conexión con JSONbin.io...")
+    conectado, mensaje = test_conexion_jsonbin()
+    if conectado:
+        print(f"✅ {mensaje}")
+    else:
+        print(f"⚠️ Problema de conexión: {mensaje}")
+        print("   Continuando de todas formas...")
+    
+    print("\n📦 Inicializando bins...")
+    
     # Inicializar admin.json (LISTA)
     admin_data = leer_json_bin(BINS['admin'])
     if admin_data is None:
         admin_data = [PROPIETARIO_ID]
-        guardar_json_bin(BINS['admin'], admin_data)
-        print("✅ Bin admin.json inicializado")
+        if guardar_json_bin(BINS['admin'], admin_data):
+            print("✅ Bin admin.json inicializado")
     else:
         print(f"✅ Bin admin.json cargado: {admin_data}")
     
@@ -89,8 +139,8 @@ def inicializar_bins():
     users_data = leer_json_bin(BINS['users'])
     if users_data is None:
         users_data = {}
-        guardar_json_bin(BINS['users'], users_data)
-        print("✅ Bin users.json inicializado")
+        if guardar_json_bin(BINS['users'], users_data):
+            print("✅ Bin users.json inicializado")
     else:
         print(f"✅ Bin users.json cargado: {len(users_data)} usuarios")
     
@@ -98,8 +148,8 @@ def inicializar_bins():
     entregas_data = leer_json_bin(BINS['entregas'])
     if entregas_data is None:
         entregas_data = []
-        guardar_json_bin(BINS['entregas'], entregas_data)
-        print("✅ Bin entregas.json inicializado")
+        if guardar_json_bin(BINS['entregas'], entregas_data):
+            print("✅ Bin entregas.json inicializado")
     else:
         print(f"✅ Bin entregas.json cargado: {len(entregas_data)} entregas")
     
@@ -107,10 +157,12 @@ def inicializar_bins():
     hbo_data = leer_json_bin(BINS['hbo'])
     if hbo_data is None:
         hbo_data = []
-        guardar_json_bin(BINS['hbo'], hbo_data)
-        print("✅ Bin hbo.json inicializado")
+        if guardar_json_bin(BINS['hbo'], hbo_data):
+            print("✅ Bin hbo.json inicializado")
     else:
         print(f"✅ Bin hbo.json cargado: {len(hbo_data)} cuentas")
+    
+    print("=" * 50)
 
 # ============= FUNCIONES DE ACCESO A DATOS =============
 
@@ -380,8 +432,8 @@ async def mis_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
         
         await update.message.reply_text(mensaje)
-    except:
-        await update.message.reply_text("❌ Error al obtener historial")
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error al obtener historial: {str(e)}")
 
 # /sacarcuenta
 async def sacarcuenta(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -428,9 +480,9 @@ async def sacarcuenta(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
                 await update.message.reply_text(mensaje)
             else:
-                await update.message.reply_text("❌ Error al actualizar créditos")
+                await update.message.reply_text("❌ Error al actualizar créditos en JSONbin")
         else:
-            await update.message.reply_text("❌ Error al actualizar stock")
+            await update.message.reply_text("❌ Error al actualizar stock en JSONbin")
         
     except Exception as e:
         await update.message.reply_text(f"❌ Error: {str(e)}")
@@ -473,7 +525,7 @@ async def agregar_usuario_creditos(update: Update, context: ContextTypes.DEFAULT
         if guardar_json_bin(BINS['users'], users):
             await update.message.reply_text(f"✅ Usuario {target_id} agregado con {creditos} créditos")
         else:
-            await update.message.reply_text("❌ Error al guardar en JSONbin")
+            await update.message.reply_text("❌ Error al guardar en JSONbin. Verifica la conexión.")
         
         context.user_data.clear()
         return ConversationHandler.END
@@ -520,7 +572,7 @@ async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAU
         if guardar_json_bin(BINS['users'], users):
             await update.message.reply_text(f"✅ {cantidad} créditos recargados a {target_id}")
         else:
-            await update.message.reply_text("❌ Error al guardar en JSONbin")
+            await update.message.reply_text("❌ Error al guardar en JSONbin. Verifica la conexión.")
         
         context.user_data.clear()
         return ConversationHandler.END
@@ -528,7 +580,7 @@ async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAU
         await update.message.reply_text(f"❌ Error: {str(e)}")
         return ConversationHandler.END
 
-# /agregar_cuenta
+# /agregar_cuenta - CORREGIDO
 async def agregar_cuenta_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
         await update.message.reply_text("❌ No autorizado")
@@ -588,7 +640,7 @@ async def agregar_cuenta_plan(update: Update, context: ContextTypes.DEFAULT_TYPE
 📦 Stock actual: {len(cuentas)} cuentas
 """)
         else:
-            await update.message.reply_text("❌ Error al guardar la cuenta")
+            await update.message.reply_text("❌ Error al guardar en JSONbin. Verifica la conexión.")
         
         # Limpiar datos temporales
         context.user_data.clear()
@@ -714,8 +766,8 @@ async def ver_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
         
         await update.message.reply_text(mensaje)
-    except:
-        await update.message.reply_text("❌ Error")
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error: {str(e)}")
 
 # /ver_cuenta_entregada
 async def ver_cuenta_entregada(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -748,8 +800,8 @@ async def ver_cuenta_entregada(update: Update, context: ContextTypes.DEFAULT_TYP
 """
         
         await update.message.reply_text(mensaje)
-    except:
-        await update.message.reply_text("❌ Error")
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error: {str(e)}")
 
 # /exportar
 async def exportar_datos(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -864,6 +916,7 @@ def main():
     print(f"   • HBO: {BINS['hbo']}")
     print(f"   • Entregas: {BINS['entregas']}")
     print("📱 Esperando mensajes...")
+    print("=" * 50)
     
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
