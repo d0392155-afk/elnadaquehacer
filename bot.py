@@ -1,15 +1,28 @@
 import logging
 import json
 import os
+import requests
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, ConversationHandler, CallbackQueryHandler
 from telegram.constants import ParseMode
+import io
+import zipfile
 
 # ============================================
-TOKEN = "8670158841:AAEjW_2Vcx_cNpwpA_iE0dLOErfJw7Sd534"  # <--- TU NUEVO TOKEN
+TOKEN = "8670158841:AAEjW_2Vcx_cNpwpA_iE0dLOErfJw7Sd534"  # <--- TU TOKEN
 PROPIETARIO_ID = 8651211925  # <--- TU ID
-# ============================================
+
+# ============= CONFIGURACIÓN JSONbin.io =============
+JSONBIN_API_KEY = "$2a$10$/0rI1RfcE9DerLvjxUSdluCDeYK/ib9fKpEqndhnQB6OUqfUcIf1y"
+
+BINS = {
+    'hbo': '69b89c64b7ec241ddc751a8a',      # Bin de cuentas HBO
+    'admin': '69b89bc4c3097a1dd52fc6f3',    # Bin de administradores
+    'users': '69b89c94b7ec241ddc751b8b',    # Bin de usuarios VIP
+    'entregas': '69b89c31b7ec241ddc751974'   # Bin de entregas
+}
+# ====================================================
 
 # Configurar logging
 logging.basicConfig(
@@ -24,83 +37,131 @@ logger = logging.getLogger(__name__)
  RECARGAR_CREDITOS_ID, RECARGAR_CREDITOS_CANTIDAD,
  ELIMINAR_USUARIO_ID, CONFIRMAR_ELIMINACION) = range(10)
 
-# Archivos JSON (SOLO HBO)
-ARCHIVOS = {
-    'hbo': 'hbo.json',
-    'admin': 'admin.json',
-    'users': 'users.json',
-    'entregas': 'entregas.json'
-}
-
 # Precio HBO (5 créditos)
 PRECIO_HBO = 5
 
-# Inicializar archivos
-def inicializar_archivos():
-    for archivo in ARCHIVOS.values():
-        if not os.path.exists(archivo):
-            if archivo == 'admin.json':
-                with open(archivo, 'w') as f:
-                    json.dump([PROPIETARIO_ID], f)
-                print(f"✅ Archivo {archivo} creado con tu ID")
-            elif archivo == 'users.json':
-                with open(archivo, 'w') as f:
-                    json.dump({}, f)
-                print(f"✅ Archivo {archivo} creado")
-            elif archivo == 'entregas.json':
-                with open(archivo, 'w') as f:
-                    json.dump([], f)
-                print(f"✅ Archivo {archivo} creado")
-            else:
-                with open(archivo, 'w') as f:
-                    json.dump([], f)
-                print(f"✅ Archivo {archivo} creado")
+# ============= FUNCIONES PARA JSONbin.io =============
 
-# Verificar si es admin
-def es_admin(user_id):
+def leer_json_bin(bin_id):
+    """Leer datos de JSONbin.io"""
     try:
-        with open('admin.json', 'r') as f:
-            admins = json.load(f)
-        return user_id in admins
-    except:
+        url = f"https://api.jsonbin.io/v3/b/{bin_id}/latest"
+        headers = {
+            'X-Master-Key': JSONBIN_API_KEY
+        }
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            return response.json()['record']
+        else:
+            print(f"Error leyendo bin {bin_id}: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"Error en leer_json_bin: {e}")
+        return None
+
+def guardar_json_bin(bin_id, datos):
+    """Guardar datos en JSONbin.io"""
+    try:
+        url = f"https://api.jsonbin.io/v3/b/{bin_id}"
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Master-Key': JSONBIN_API_KEY
+        }
+        response = requests.put(url, json=datos, headers=headers)
+        return response.status_code == 200
+    except Exception as e:
+        print(f"Error en guardar_json_bin: {e}")
         return False
 
-# Verificar si es propietario
+def inicializar_bins():
+    """Inicializar todos los bins con datos por defecto"""
+    
+    # Inicializar admin.json
+    admin_data = leer_json_bin(BINS['admin'])
+    if admin_data is None:
+        admin_data = [PROPIETARIO_ID]
+        guardar_json_bin(BINS['admin'], admin_data)
+        print("✅ Bin admin.json inicializado")
+    
+    # Inicializar users.json
+    users_data = leer_json_bin(BINS['users'])
+    if users_data is None:
+        users_data = {}
+        guardar_json_bin(BINS['users'], users_data)
+        print("✅ Bin users.json inicializado")
+    
+    # Inicializar entregas.json
+    entregas_data = leer_json_bin(BINS['entregas'])
+    if entregas_data is None:
+        entregas_data = []
+        guardar_json_bin(BINS['entregas'], entregas_data)
+        print("✅ Bin entregas.json inicializado")
+    
+    # Inicializar hbo.json
+    hbo_data = leer_json_bin(BINS['hbo'])
+    if hbo_data is None:
+        hbo_data = []
+        guardar_json_bin(BINS['hbo'], hbo_data)
+        print("✅ Bin hbo.json inicializado")
+
+# ============= FUNCIONES DE ACCESO A DATOS =============
+
+def obtener_admins():
+    data = leer_json_bin(BINS['admin'])
+    return data if data else []
+
+def es_admin(user_id):
+    admins = obtener_admins()
+    return user_id in admins
+
 def es_propietario(user_id):
     return user_id == PROPIETARIO_ID
 
-# Verificar si es VIP (tiene créditos)
+def obtener_usuarios():
+    data = leer_json_bin(BINS['users'])
+    return data if data else {}
+
 def es_vip(user_id):
-    try:
-        with open('users.json', 'r') as f:
-            users = json.load(f)
-        return str(user_id) in users and users[str(user_id)]['creditos'] > 0
-    except:
-        return False
+    users = obtener_usuarios()
+    return str(user_id) in users and users[str(user_id)]['creditos'] > 0
 
-# Obtener créditos
 def obtener_creditos(user_id):
-    try:
-        with open('users.json', 'r') as f:
-            users = json.load(f)
-        return users.get(str(user_id), {}).get('creditos', 0)
-    except:
-        return 0
+    users = obtener_usuarios()
+    return users.get(str(user_id), {}).get('creditos', 0)
 
-# Verificar stock HBO
+def guardar_usuario(user_id, datos):
+    users = obtener_usuarios()
+    users[str(user_id)] = datos
+    return guardar_json_bin(BINS['users'], users)
+
+def eliminar_usuario_db(user_id):
+    users = obtener_usuarios()
+    if str(user_id) in users:
+        del users[str(user_id)]
+        return guardar_json_bin(BINS['users'], users)
+    return False
+
+def obtener_cuentas_hbo():
+    data = leer_json_bin(BINS['hbo'])
+    return data if data else []
+
+def guardar_cuentas_hbo(cuentas):
+    return guardar_json_bin(BINS['hbo'], cuentas)
+
 def verificar_stock_hbo():
-    try:
-        with open('hbo.json', 'r') as f:
-            cuentas = json.load(f)
-        return len(cuentas)
-    except:
-        return 0
+    cuentas = obtener_cuentas_hbo()
+    return len(cuentas)
 
-# Registrar entrega
+def obtener_entregas():
+    data = leer_json_bin(BINS['entregas'])
+    return data if data else []
+
+def guardar_entregas(entregas):
+    return guardar_json_bin(BINS['entregas'], entregas)
+
 def registrar_entrega(user_id, user_name, cuenta):
     try:
-        with open('entregas.json', 'r') as f:
-            entregas = json.load(f)
+        entregas = obtener_entregas()
         
         registro = {
             'user_id': user_id,
@@ -115,21 +176,14 @@ def registrar_entrega(user_id, user_name, cuenta):
         }
         
         entregas.append(registro)
-        
-        with open('entregas.json', 'w') as f:
-            json.dump(entregas, f, indent=2)
-        
-        return True
+        return guardar_entregas(entregas)
     except Exception as e:
         print(f"Error registrando entrega: {e}")
         return False
 
-# Obtener últimas entregas
 def obtener_ultimas_entregas(user_id, limite=3):
     try:
-        with open('entregas.json', 'r') as f:
-            entregas = json.load(f)
-        
+        entregas = obtener_entregas()
         entregas_usuario = [e for e in entregas if e['user_id'] == user_id]
         return entregas_usuario[-limite:] if entregas_usuario else []
     except:
@@ -196,6 +250,7 @@ async def cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /ver_cuentas - Ver stock
 /ver_entregas - Ver entregas
 /ver_cuenta_entregada - Ver detalles
+/exportar - Exportar todos los datos
 """
     
     if es_propietario(user_id) or es_admin(user_id):
@@ -284,9 +339,7 @@ async def mis_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
     try:
-        with open('entregas.json', 'r') as f:
-            entregas = json.load(f)
-        
+        entregas = obtener_entregas()
         mis_entregas = [e for e in entregas if e['user_id'] == user_id]
         
         if not mis_entregas:
@@ -316,7 +369,8 @@ async def sacarcuenta(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     creditos = obtener_creditos(user_id)
-    stock = verificar_stock_hbo()
+    cuentas = obtener_cuentas_hbo()
+    stock = len(cuentas)
     
     if creditos < PRECIO_HBO:
         await update.message.reply_text(f"❌ Créditos insuficientes\nNecesitas: {PRECIO_HBO}\nTienes: {creditos}")
@@ -327,25 +381,16 @@ async def sacarcuenta(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     try:
-        with open('hbo.json', 'r') as f:
-            cuentas = json.load(f)
-        
         cuenta = cuentas.pop(0)
         
-        with open('hbo.json', 'w') as f:
-            json.dump(cuentas, f)
-        
-        with open('users.json', 'r') as f:
-            users = json.load(f)
-        
-        users[str(user_id)]['creditos'] -= PRECIO_HBO
-        
-        with open('users.json', 'w') as f:
-            json.dump(users, f)
-        
-        registrar_entrega(user_id, update.effective_user.first_name or "Usuario", cuenta)
-        
-        mensaje = f"""
+        if guardar_cuentas_hbo(cuentas):
+            users = obtener_usuarios()
+            users[str(user_id)]['creditos'] -= PRECIO_HBO
+            
+            if guardar_json_bin(BINS['users'], users):
+                registrar_entrega(user_id, update.effective_user.first_name or "Usuario", cuenta)
+                
+                mensaje = f"""
 ✅ EXTRACCIÓN EXITOSA
 
 🎬 HBO MAX
@@ -358,7 +403,11 @@ async def sacarcuenta(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 ⚠️ No cambiar la contraseña
 """
-        await update.message.reply_text(mensaje)
+                await update.message.reply_text(mensaje)
+            else:
+                await update.message.reply_text("❌ Error al actualizar créditos")
+        else:
+            await update.message.reply_text("❌ Error al actualizar stock")
         
     except Exception as e:
         await update.message.reply_text(f"❌ Error: {str(e)}")
@@ -388,18 +437,16 @@ async def agregar_usuario_creditos(update: Update, context: ContextTypes.DEFAULT
         creditos = int(update.message.text)
         target_id = context.user_data['target_id']
         
-        with open('users.json', 'r') as f:
-            users = json.load(f)
-        
-        users[str(target_id)] = {
+        user_data = {
             'creditos': creditos,
             'fecha_registro': str(datetime.now())
         }
         
-        with open('users.json', 'w') as f:
-            json.dump(users, f)
+        if guardar_usuario(target_id, user_data):
+            await update.message.reply_text(f"✅ Usuario {target_id} agregado con {creditos} créditos")
+        else:
+            await update.message.reply_text("❌ Error al guardar usuario")
         
-        await update.message.reply_text(f"✅ Usuario {target_id} agregado con {creditos} créditos")
         return ConversationHandler.END
     except Exception as e:
         await update.message.reply_text(f"❌ Error: {str(e)}")
@@ -428,8 +475,7 @@ async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAU
         cantidad = int(update.message.text)
         target_id = context.user_data['target_id']
         
-        with open('users.json', 'r') as f:
-            users = json.load(f)
+        users = obtener_usuarios()
         
         if str(target_id) in users:
             users[str(target_id)]['creditos'] += cantidad
@@ -439,16 +485,17 @@ async def recargar_creditos_cantidad(update: Update, context: ContextTypes.DEFAU
                 'fecha_registro': str(datetime.now())
             }
         
-        with open('users.json', 'w') as f:
-            json.dump(users, f)
+        if guardar_json_bin(BINS['users'], users):
+            await update.message.reply_text(f"✅ {cantidad} créditos recargados a {target_id}")
+        else:
+            await update.message.reply_text("❌ Error al recargar")
         
-        await update.message.reply_text(f"✅ {cantidad} créditos recargados a {target_id}")
         return ConversationHandler.END
     except Exception as e:
         await update.message.reply_text(f"❌ Error: {str(e)}")
         return ConversationHandler.END
 
-# /agregar_cuenta - CORREGIDO
+# /agregar_cuenta
 async def agregar_cuenta_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
         await update.message.reply_text("❌ No autorizado")
@@ -481,9 +528,8 @@ async def agregar_cuenta_plan(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update.message.reply_text("❌ Error: Faltan datos. Intenta de nuevo desde /agregar_cuenta")
             return ConversationHandler.END
         
-        # Cargar archivo hbo.json
-        with open('hbo.json', 'r') as f:
-            cuentas = json.load(f)
+        # Obtener cuentas actuales
+        cuentas = obtener_cuentas_hbo()
         
         # Crear nueva cuenta
         nueva_cuenta = {
@@ -496,12 +542,9 @@ async def agregar_cuenta_plan(update: Update, context: ContextTypes.DEFAULT_TYPE
         # Agregar a la lista
         cuentas.append(nueva_cuenta)
         
-        # Guardar archivo
-        with open('hbo.json', 'w') as f:
-            json.dump(cuentas, f, indent=2)
-        
-        # Mensaje de éxito
-        await update.message.reply_text(f"""
+        # Guardar
+        if guardar_cuentas_hbo(cuentas):
+            await update.message.reply_text(f"""
 ✅ CUENTA AGREGADA CON ÉXITO
 
 📧 Correo: {context.user_data['correo']}
@@ -511,6 +554,8 @@ async def agregar_cuenta_plan(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 📦 Stock actual: {len(cuentas)} cuentas
 """)
+        else:
+            await update.message.reply_text("❌ Error al guardar la cuenta")
         
         # Limpiar datos temporales
         context.user_data.clear()
@@ -533,8 +578,7 @@ async def eliminar_usuario_id(update: Update, context: ContextTypes.DEFAULT_TYPE
     try:
         target_id = int(update.message.text)
         
-        with open('users.json', 'r') as f:
-            users = json.load(f)
+        users = obtener_usuarios()
         
         if str(target_id) not in users:
             await update.message.reply_text("❌ Usuario no existe")
@@ -564,15 +608,10 @@ async def eliminar_usuario_confirmar(update: Update, context: ContextTypes.DEFAU
     if query.data == "conf_si":
         target_id = context.user_data['eliminar_id']
         
-        with open('users.json', 'r') as f:
-            users = json.load(f)
-        
-        del users[str(target_id)]
-        
-        with open('users.json', 'w') as f:
-            json.dump(users, f)
-        
-        await query.edit_message_text(f"✅ Usuario {target_id} eliminado")
+        if eliminar_usuario_db(target_id):
+            await query.edit_message_text(f"✅ Usuario {target_id} eliminado")
+        else:
+            await query.edit_message_text("❌ Error al eliminar")
     else:
         await query.edit_message_text("✅ Cancelado")
     
@@ -585,8 +624,7 @@ async def ver_usuarios(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     try:
-        with open('users.json', 'r') as f:
-            users = json.load(f)
+        users = obtener_usuarios()
         
         if not users:
             await update.message.reply_text("📭 No hay usuarios")
@@ -621,8 +659,7 @@ async def ver_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     try:
-        with open('entregas.json', 'r') as f:
-            entregas = json.load(f)
+        entregas = obtener_entregas()
         
         if not entregas:
             await update.message.reply_text("📭 No hay entregas")
@@ -656,9 +693,7 @@ async def ver_cuenta_entregada(update: Update, context: ContextTypes.DEFAULT_TYP
     try:
         target_id = int(args[0])
         
-        with open('entregas.json', 'r') as f:
-            entregas = json.load(f)
-        
+        entregas = obtener_entregas()
         entregas_usuario = [e for e in entregas if e['user_id'] == target_id]
         
         if not entregas_usuario:
@@ -678,6 +713,37 @@ async def ver_cuenta_entregada(update: Update, context: ContextTypes.DEFAULT_TYP
     except:
         await update.message.reply_text("❌ Error")
 
+# /exportar
+async def exportar_datos(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not (es_propietario(update.effective_user.id) or es_admin(update.effective_user.id)):
+        await update.message.reply_text("❌ No autorizado")
+        return
+    
+    await update.message.reply_text("📦 Generando respaldo...")
+    
+    try:
+        # Obtener todos los datos
+        datos = {
+            'hbo.json': obtener_cuentas_hbo(),
+            'admin.json': obtener_admins(),
+            'users.json': obtener_usuarios(),
+            'entregas.json': obtener_entregas(),
+            'fecha_exportacion': str(datetime.now())
+        }
+        
+        # Crear archivo JSON
+        archivo_json = json.dumps(datos, indent=2)
+        
+        # Enviar como documento
+        await update.message.reply_document(
+            document=io.BytesIO(archivo_json.encode()),
+            filename=f'respaldo_hitscol_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json',
+            caption="✅ Respaldo completo de la base de datos"
+        )
+        
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error al exportar: {str(e)}")
+
 # Manejador para comandos desconocidos
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Comando no válido. Usa /cmd")
@@ -686,10 +752,11 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     print("=" * 50)
-    print("🔥 HITSCOL HBO BOT v1.0 🔥")
+    print("🔥 HITSCOL HBO BOT v2.0 (CON JSONbin.io) 🔥")
     print("=" * 50)
     
-    inicializar_archivos()
+    # Inicializar bins en JSONbin.io
+    inicializar_bins()
     
     application = Application.builder().token(TOKEN).build()
     
@@ -747,11 +814,17 @@ def main():
     application.add_handler(CommandHandler("ver_cuentas", ver_cuentas))
     application.add_handler(CommandHandler("ver_entregas", ver_entregas))
     application.add_handler(CommandHandler("ver_cuenta_entregada", ver_cuenta_entregada))
+    application.add_handler(CommandHandler("exportar", exportar_datos))
     
     # Manejador de comandos desconocidos
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     
     print("✅ Bot iniciado correctamente")
+    print(f"📊 Bins conectados:")
+    print(f"   • Admin: {BINS['admin']}")
+    print(f"   • Usuarios: {BINS['users']}")
+    print(f"   • HBO: {BINS['hbo']}")
+    print(f"   • Entregas: {BINS['entregas']}")
     print("📱 Esperando mensajes...")
     
     application.run_polling(allowed_updates=Update.ALL_TYPES)
